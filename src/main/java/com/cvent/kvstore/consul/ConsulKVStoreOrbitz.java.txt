@@ -1,0 +1,123 @@
+package com.cvent.kvstore.consul;
+
+import com.cvent.kvstore.KVStore;
+import com.cvent.kvstore.KVStoreException;
+import com.cvent.kvstore.KeyValue;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.net.HostAndPort;
+import com.orbitz.consul.Consul;
+import com.orbitz.consul.KeyValueClient;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+
+/**
+ * A Consul-backed key-store
+ * Created by sviswanathan on 2/10/16.
+ */
+public class ConsulKVStoreOrbitz implements KVStore {
+   private static final String CONSUL_HIERARCHY_SEPARATOR = "/";
+
+   private static final String DEFAULT_REGION_PREFIX = DEFAULT_REGION + CONSUL_HIERARCHY_SEPARATOR;
+   private static final String AUDIT_REGION_PREFIX = AUDIT_REGION + CONSUL_HIERARCHY_SEPARATOR;
+   private String region;
+   private String regionPrefix;
+   private ConsulKVStoreConfig config;
+   private KeyValueClient client;
+
+   ConsulKVStoreOrbitz(String region, ConsulKVStoreConfig config) {
+      this.region = region;
+      this.regionPrefix = region + CONSUL_HIERARCHY_SEPARATOR;
+      this.config = config;
+//      client = Consul.builder().withHostAndPort(HostAndPort.fromString(config.getConsulEndpoint())).build().keyValueClient();
+      client = Consul.builder().withHostAndPort(HostAndPort.fromParts("dev-wiz-01", 8500)).build().keyValueClient();
+   }
+
+   private boolean isDefaultRegion() {
+      return KVStore.DEFAULT_REGION.equals(region);
+   }
+
+   public String region() {
+      return region;
+   }
+
+   public boolean put(String key, String value, String author, boolean force) throws KVStoreException {
+      Preconditions.checkArgument(isNotBlank(key) && isNotBlank(value) && isNotBlank(author), "key, value and author are required");
+      if (!force && !isDefaultRegion()) {
+         Optional<String> defValue = client.getValueAsString(DEFAULT_REGION_PREFIX + key);
+         if (!defValue.isPresent()) {
+            throw KVStoreException.keyAbsentInDefault(key);
+         } else if (defValue.get().equals(value)) {
+            // If the value in the default region matches
+            return false;
+         }
+      }
+
+      Optional<String> val = client.getValueAsString(regionPrefix + key);
+      String oldVal = val.or(NO_VALUE);
+      if (!value.equals(oldVal)) {
+         // Audit trail: Create an entry in audit region for the same key with a revision number at the end
+         List<String> keys = client.getKeys(AUDIT_REGION_PREFIX + key);
+         int rev = keys.stream().map(k -> Integer.valueOf(Util.lastPart(k))).max(Comparator.naturalOrder()).orElse(0);
+         String auditKey = Util.keyFor(AUDIT_REGION_PREFIX, key, rev + 1);
+         if (!client.putValue(auditKey, Util.auditRecord(region, key, oldVal, value, author))) {
+            throw KVStoreException.writeFailed(AUDIT_REGION, auditKey);
+         }
+
+         // Create new entry
+         if (!client.putValue(regionPrefix + key, value)) {
+            throw KVStoreException.writeFailed(region, key);
+         }
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   public boolean put(KeyValue keyValue, String author, boolean force) throws KVStoreException {
+      return put(keyValue.key(), keyValue.value(), author, force);
+   }
+
+   public String getValueAt(String key) {
+      return client.getValueAsString(key).orNull();
+   }
+
+   public Collection<KeyValue> getHierarchyAt(String key) {
+      return null;
+   }
+
+   private static class Util {
+
+      // The portion of a key after the last "/"
+      private static String lastPart(String key) {
+         return key.substring(key.indexOf(CONSUL_HIERARCHY_SEPARATOR) + 1);
+      }
+
+      // Assumes regionPrefix already has the "/"
+      private static String keyFor(String regionPrefix, Object... keyPortions) {
+         StringBuilder sb = new StringBuilder(regionPrefix.length() + 10*keyPortions.length);
+         sb.append(regionPrefix);
+         boolean first = true;
+         for (Object portion: keyPortions) {
+            if (!first) {
+               sb.append(CONSUL_HIERARCHY_SEPARATOR);
+            }
+            first = false;
+            sb.append(portion.toString());
+         }
+         return sb.toString();
+      }
+
+      public static String auditRecord(String region, String key, String oldVal, String newVal, String author) {
+         return String.format("region=%s,key=%s,newVal=%s,oldVal=%s,author=%s",
+               region, key, newVal, oldVal, author);
+      }
+   }
+
+
+}

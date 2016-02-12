@@ -23,6 +23,10 @@ public interface KVStore {
    public static final String AUDIT_REGION = "audit";
    public static final String NO_VALUE = "<None>";
 
+   // Care should be taken to ensure that this separator is neutral to any key-value store
+   public static final String HIERARCHY_SEPARATOR = "/";
+   public static final String ARRAY_PREFIX = "...";
+
    // The region for which this KVStore was created
    String region();
 

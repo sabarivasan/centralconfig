@@ -20,22 +20,25 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
  * Created by sviswanathan on 2/10/16.
  */
 public class SimpleKVStore implements KVStore {
-   private static final String CONSUL_HIERARCHY_SEPARATOR = "/";
 
-   private static final String DEFAULT_REGION_PREFIX = DEFAULT_REGION + CONSUL_HIERARCHY_SEPARATOR;
-   private static final String AUDIT_REGION_PREFIX = AUDIT_REGION + CONSUL_HIERARCHY_SEPARATOR;
+   private static final String DEFAULT_REGION_PREFIX = DEFAULT_REGION + HIERARCHY_SEPARATOR;
+   private static final String AUDIT_REGION_PREFIX = AUDIT_REGION + HIERARCHY_SEPARATOR;
    private String region;
    private String regionPrefix;
    private KVSStoreDao dao;
 
    SimpleKVStore(String region, KVSStoreDao dao) {
       this.region = region;
-      this.regionPrefix = region + CONSUL_HIERARCHY_SEPARATOR;
+      this.regionPrefix = region + HIERARCHY_SEPARATOR;
       this.dao = dao;
    }
 
    public static KVStore kvStoreForDefaultRegion(KVSStoreDao dao) {
       return new SimpleKVStore(DEFAULT_REGION, dao);
+   }
+
+   public static KVStore forRegion(String region, KVSStoreDao dao) {
+      return new SimpleKVStore(region, dao);
    }
 
    private boolean isDefaultRegion() {
@@ -89,14 +92,20 @@ public class SimpleKVStore implements KVStore {
 
    public Optional<String> getValueAt(String key) {
       Optional<String> val = dao.getValueAt(regionPrefix + key);
-      return val.isPresent()?val:dao.getValueAt(DEFAULT_REGION_PREFIX + key);
+      return val.isPresent() ? val : dao.getValueAt(DEFAULT_REGION_PREFIX + key);
    }
 
    public Map<String, String> getHierarchyAt(String key) {
-      Map<String, String> vals = dao.getHierarchyAsMap(regionPrefix + key);
-      Map<String, String> defaultVals = dao.getHierarchyAsMap(DEFAULT_REGION_PREFIX + key);
-      defaultVals.forEach((k,v) -> { if (!vals.containsKey(k)) vals.put(k, v); } );
-      return vals;
+      if (isDefaultRegion()) {
+         return dao.getHierarchyAsMap(DEFAULT_REGION_PREFIX + key, true);
+      } else {
+         Map<String, String> regionVals = dao.getHierarchyAsMap(regionPrefix + key, true);
+         Map<String, String> defaultVals = dao.getHierarchyAsMap(DEFAULT_REGION_PREFIX + key, true);
+         defaultVals.forEach((k, v) -> {
+            if (!regionVals.containsKey(k)) regionVals.put(k, v);
+         });
+         return Collections.unmodifiableMap(regionVals);
+      }
    }
 
    @Override
@@ -109,17 +118,17 @@ public class SimpleKVStore implements KVStore {
 
       // The portion of a key after the last "/"
       private static String lastPart(String key) {
-         return key.substring(key.lastIndexOf(CONSUL_HIERARCHY_SEPARATOR) + 1);
+         return key.substring(key.lastIndexOf(HIERARCHY_SEPARATOR) + 1);
       }
 
       // Assumes regionPrefix already has the "/"
       private static String keyFor(String regionPrefix, Object... keyPortions) {
-         StringBuilder sb = new StringBuilder(regionPrefix.length() + 10*keyPortions.length);
+         StringBuilder sb = new StringBuilder(regionPrefix.length() + 10 * keyPortions.length);
          sb.append(regionPrefix);
          boolean first = true;
-         for (Object portion: keyPortions) {
+         for (Object portion : keyPortions) {
             if (!first) {
-               sb.append(CONSUL_HIERARCHY_SEPARATOR);
+               sb.append(HIERARCHY_SEPARATOR);
             }
             first = false;
             sb.append(portion.toString());

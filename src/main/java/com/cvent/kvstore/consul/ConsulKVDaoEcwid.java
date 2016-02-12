@@ -1,6 +1,7 @@
 package com.cvent.kvstore.consul;
 
 import com.cvent.kvstore.KVSStoreDao;
+import com.cvent.kvstore.KVStore;
 import com.cvent.kvstore.KVStoreException;
 import com.cvent.kvstore.KeyValue;
 import com.ecwid.consul.v1.ConsulClient;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -49,22 +51,19 @@ public class ConsulKVDaoEcwid implements KVSStoreDao {
    }
 
    @Override
-   public Optional<Collection<KeyValue>> getHierarchyAt(String key) {
+   public Map<String, String> getHierarchyAsMap(String key, boolean stripFirstPartOfKey) {
       Response<List<GetValue>> vals = client.getKVValues(key);
       if (vals.getValue() != null) {
-         return Optional.of(vals.getValue().stream().map(gv -> KeyValue.from(gv.getKey(), gv.getValue())).collect(Collectors.toList()));
+         if (stripFirstPartOfKey) {
+            return vals.getValue().stream().collect(Collectors.toMap(
+                  gv -> gv.getKey().substring(gv.getKey().indexOf(KVStore.HIERARCHY_SEPARATOR) + 1),
+                  gv -> Base64.base64Decode(gv.getValue())));
+         } else {
+            return vals.getValue().stream().collect(Collectors.toMap(GetValue::getKey,
+                  gv -> Base64.base64Decode(gv.getValue())));
+         }
       } else {
-         return Optional.absent();
-      }
-   }
-
-   @Override
-   public Map<String, String> getHierarchyAsMap(String key) {
-      Response<List<GetValue>> vals = client.getKVValues(key);
-      if (vals.getValue() != null) {
-         return vals.getValue().stream().collect(Collectors.toMap(GetValue::getKey, GetValue::getValue));
-      } else {
-         return Collections.emptyMap();
+         return new HashMap<>();
       }
    }
 

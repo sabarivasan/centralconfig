@@ -34,11 +34,10 @@ public interface KVSStoreDao {
    /**
     * Retrieves a tree of key-value pair at a given key
     * @param key the key
-    * @return a collection of key-value pairs
+    * @param stripFirstPartOfKey should we strip the first part of key when creating the return value map?
+    * @return a map of key-value pairs
     */
-   Optional<Collection<KeyValue>> getHierarchyAt(String key);
-
-   Map<String, String> getHierarchyAsMap(String key);
+   Map<String, String> getHierarchyAsMap(String key, boolean stripFirstPartOfKey);
 
 
    Optional<Collection<String>> getKeysAt(String key);

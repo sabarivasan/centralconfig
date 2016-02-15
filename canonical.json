@@ -1,27 +1,27 @@
 {
-  s1: "123",
-  arr1: [
+  "s1": "123",
+  "arr1": [
     8,
     false,
     "sample",
     4.6
   ],
-  dict1: {
-    s2: "blah",
-    f2: 23.56
+  "dict1": {
+    "s2": "blah",
+    "f2": 23.56
   },
-  dict1_2: {
-    arr2: [
+  "dict1_2": {
+    "arr2": [
       {
-        s3: "type 1",
-        i3: 223
+        "s3": "type 1",
+        "i3": 223
       },
       {
-        s3: "type 2",
-        i3: 984,
-        b3: true
+        "s3": "type 2",
+        "i3": 984,
+        "b3": true
       }
     ],
-    s2: "floo"
+    "s2": "floo"
   }
 }

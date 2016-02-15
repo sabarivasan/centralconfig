@@ -22,14 +22,14 @@ public class TemplateToKeyset {
 
    public static final String PARENT_CONFIG_FILE_PROP_NAME = "parentConfigurationFile";
 
-   public static Set<String> templateToKeySet(File document) throws IOException {
+   public static KeySet templateToKeySet(File document) throws IOException {
       ObjectMapper mapper = new ObjectMapper(document.getName().endsWith("yaml")?new YAMLFactory():new JsonFactory());
       JsonNode rootNode = mapper.readValue(document, JsonNode.class);
 
       Set<String> keySet = new HashSet<>();
       visit("", rootNode, keySet, "", document);
 
-      return keySet;
+      return KeySet.from(keySet);
    }
 
 
@@ -61,7 +61,7 @@ public class TemplateToKeyset {
 
             case STRING:
                if (PARENT_CONFIG_FILE_PROP_NAME.equals(name)) {
-                  keySet.addAll(templateToKeySet(new File(parentDoc.getParentFile().getParentFile(), node.asText())));
+                  keySet.addAll(templateToKeySet(new File(parentDoc.getParentFile().getParentFile(), node.asText())).keys());
                   break;
                }
             case NUMBER:
@@ -77,7 +77,8 @@ public class TemplateToKeyset {
    }
 
    public static void main(String[] args) throws IOException {
-      TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/LearnHogan/auth-service/auth-service-web/configs/alpha.yaml"));
+//      TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/LearnHogan/auth-service/auth-service-web/configs/alpha.yaml"));
+      TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
    }
 
 }

@@ -3,7 +3,9 @@ package com.cvent.kvstore;
 import com.google.common.base.Optional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A logical interface that performs storage operations for a given region.
@@ -26,6 +28,10 @@ public interface KVStore {
    // Care should be taken to ensure that this separator is neutral to any key-value store
    public static final String HIERARCHY_SEPARATOR = "/";
    public static final String ARRAY_PREFIX = "...";
+
+   public static final String TRUE = "true";
+   public static final String FALSE = "false";
+   public static Set<String> BOOLEAN_VALUES = new HashSet<>() {{ add(TRUE);  add(FALSE); }};
 
    // The region for which this KVStore was created
    String region();

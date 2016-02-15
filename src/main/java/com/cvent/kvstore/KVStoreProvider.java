@@ -1,6 +1,6 @@
 package com.cvent.kvstore;
 
-import com.cvent.kvstore.consul.ConsulKVStoreConfig;
+import com.cvent.kvstore.dw.ConsulKVStoreConfig;
 
 /**
  *

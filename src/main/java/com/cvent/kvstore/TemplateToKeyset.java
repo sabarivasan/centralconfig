@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,7 +62,14 @@ public class TemplateToKeyset {
 
             case STRING:
                if (PARENT_CONFIG_FILE_PROP_NAME.equals(name)) {
-                  keySet.addAll(templateToKeySet(new File(parentDoc.getParentFile().getParentFile(), node.asText())).keys());
+                  File parentRef = new File(parentDoc.getParentFile(), node.asText());
+                  if (!parentRef.exists()) {
+                     parentRef = new File(parentDoc.getParentFile().getParentFile(), node.asText());
+                  }
+                  if (!parentRef.exists()) {
+                     throw new FileNotFoundException(name);
+                  }
+                  keySet.addAll(templateToKeySet(parentRef).keys());
                   break;
                }
             case NUMBER:

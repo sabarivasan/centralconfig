@@ -1,9 +1,10 @@
-package com.cvent.kvstore.consul;
+package com.cvent.kvstore;
 
-import com.cvent.kvstore.KVSStoreDao;
-import com.cvent.kvstore.KVStore;
-import com.cvent.kvstore.KVStoreException;
-import com.cvent.kvstore.KeyValue;
+import com.cvent.JsonSerializer;
+import com.cvent.kvstore.model.AuditLog;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
@@ -75,8 +76,10 @@ public class SimpleKVStore implements KVStore {
                k -> Integer.valueOf(Util.lastPart(k))).max(Comparator.naturalOrder()).orElse(0);
          String auditKey = Util.keyFor(AUDIT_REGION_PREFIX, region, key, rev + 1);
 
+         AuditLog auditLog = new AuditLog(author, region, key, oldVal, value, rev);
+
          // Create the audit trail entry
-         dao.put(auditKey, Util.auditRecord(region, key, oldVal, value, author));
+         dao.put(auditKey, Util.auditRecord(auditLog));
 
          // Create the actual entry
          dao.put(regionPrefix + key, value);
@@ -136,9 +139,12 @@ public class SimpleKVStore implements KVStore {
          return sb.toString();
       }
 
-      public static String auditRecord(String region, String key, String oldVal, String newVal, String author) {
-         return String.format("region=%s,key=%s,newVal=%s,oldVal=%s,author=%s",
-               region, key, newVal, oldVal, author);
+      public static String auditRecord(AuditLog auditLog) {
+         try {
+            return JsonSerializer.toJson(auditLog);
+         } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not write audit log", e);
+         }
       }
 
       public static void main(String[] args) {

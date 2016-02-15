@@ -3,21 +3,17 @@ package com.cvent.kvstore.consul;
 import com.cvent.kvstore.KVSStoreDao;
 import com.cvent.kvstore.KVStore;
 import com.cvent.kvstore.KVStoreException;
-import com.cvent.kvstore.KeyValue;
+import com.cvent.kvstore.dw.ConsulKVStoreConfig;
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.GetValue;
 import com.google.common.base.Optional;
 import com.sun.jersey.core.util.Base64;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**

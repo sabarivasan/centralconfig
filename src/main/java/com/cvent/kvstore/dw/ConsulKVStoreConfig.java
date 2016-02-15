@@ -1,4 +1,4 @@
-package com.cvent.kvstore.consul;
+package com.cvent.kvstore.dw;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

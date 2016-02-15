@@ -1,10 +1,8 @@
 package com.cvent.kvstore;
 
 import com.cvent.kvstore.consul.ConsulKVDaoEcwid;
-import com.cvent.kvstore.consul.ConsulKVStoreConfig;
-import com.cvent.kvstore.consul.SimpleKVStore;
+import com.cvent.kvstore.dw.ConsulKVStoreConfig;
 import junit.framework.TestCase;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,7 +49,7 @@ public class KVStoreTest {
       kvStore.destroy();
    }
 
-   @After
+   //@After
    public void teardown() {
       defaultKVStore.destroy();
       kvStore.destroy();
@@ -107,7 +105,7 @@ public class KVStoreTest {
          put("region1", kvStore);
          put(kvStore.region(), kvStore);
       }};
-      Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider);
+      Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider, "canonical_doc.properties");
 
 
       Map<String, String> defaultKVs = keyValuesByRegion.get(KVStore.DEFAULT_REGION);
@@ -144,12 +142,41 @@ public class KVStoreTest {
          put("region1", kvStore);
          put(kvStore.region(), kvStore);
       }};
-      Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider);
+      Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider, "canonical_doc.properties");
 
       ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
       KeySet keySet = TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
       configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
       configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
+   }
+
+   @Test
+   public void testConfigGeneratorAuth() throws IOException {
+
+      KVStore p2KVStore = SimpleKVStore.forRegion("p2", dao);
+      KVStore region1KVStore = SimpleKVStore.forRegion("region1", dao);
+      try {
+         Map<String, KVStore> kvStoreProvider = new HashMap<String, KVStore>() {{
+            put(KVStore.DEFAULT_REGION, defaultKVStore);
+            put("region1", region1KVStore);
+            put(region1KVStore.region(), region1KVStore);
+//         put("alpha", alphaKVStore);
+//         put(alphaKVStore.region(), alphaKVStore);
+            put("p2", p2KVStore);
+            put(p2KVStore.region(), p2KVStore);
+         }};
+         createConicalData(kvStoreProvider, "canonical_doc.properties");
+         createConicalData(kvStoreProvider, "canonical_doc_auth.properties");
+
+//      ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
+//      KeySet keySet = TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
+//      configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
+//      configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
+
+      } finally {
+//         p2KVStore.destroy();
+//         region1KVStore.destroy();
+      }
    }
 
    private Set<String> generateHierarchies(String key, Set<String> hierarchiesTested) {
@@ -168,10 +195,10 @@ public class KVStoreTest {
    }
 
 
-   private Map<String, Map<String, String>> createConicalData(Map<String, KVStore> kvStoreProvider) throws IOException {
+   private Map<String, Map<String, String>> createConicalData(Map<String, KVStore> kvStoreProvider, String canonicalDataFile) throws IOException {
       Map<String, Map<String, String>> keyValuesByRegion = new HashMap<>();
       Properties props = new Properties();
-      props.load(this.getClass().getResourceAsStream("canonical_doc.properties"));
+      props.load(this.getClass().getResourceAsStream(canonicalDataFile));
       // Makes the assumption that the default region appears before other regions
       props.stringPropertyNames().stream().sorted().forEach(k -> {
          try {

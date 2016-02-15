@@ -2,7 +2,6 @@ package com.cvent.kvstore;
 
 import com.google.common.base.Optional;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -21,17 +20,17 @@ import java.util.Set;
  * Created by sviswanathan on 2/10/16.
  */
 public interface KVStore {
-   public static final String DEFAULT_REGION = "default";
-   public static final String AUDIT_REGION = "audit";
-   public static final String NO_VALUE = "<None>";
+   String DEFAULT_REGION = "default";
+   String AUDIT_REGION = "audit";
+   String NO_VALUE = "<None>";
 
    // Care should be taken to ensure that this separator is neutral to any key-value store
-   public static final String HIERARCHY_SEPARATOR = "/";
-   public static final String ARRAY_PREFIX = "...";
+   String HIERARCHY_SEPARATOR = "/";
+   String ARRAY_PREFIX = "...";
 
-   public static final String TRUE = "true";
-   public static final String FALSE = "false";
-   public static Set<String> BOOLEAN_VALUES = new HashSet<>() {{ add(TRUE);  add(FALSE); }};
+   String TRUE = "true";
+   String FALSE = "false";
+   Set<String> BOOLEAN_VALUES = new HashSet<String>() {{ add(TRUE);  add(FALSE); }};
 
    // The region for which this KVStore was created
    String region();
@@ -69,8 +68,8 @@ public interface KVStore {
 
    /**
     * Gets the primitive value for a given key.
-    * @param key
-    * @return
+    * @param key key to get value for
+    * @return the proprietary string representation of the value (supports strings, number and boolean)
     */
    Optional<String> getValueAt(String key);
 

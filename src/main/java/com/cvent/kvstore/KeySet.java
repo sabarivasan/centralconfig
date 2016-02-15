@@ -3,6 +3,8 @@ package com.cvent.kvstore;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -12,15 +14,16 @@ public class KeySet {
    private Set<String> keys;
 
    private KeySet(Set<String> keys) {
-      this.keys = keys.stream().sorted(keySortComparator()).collect(Collectors.toSet());
+      this.keys = new TreeSet<>(keySortComparator());
+      this.keys.addAll(keys);
    }
 
    public static Comparator<String> keySortComparator() {
       return (k1, k2) -> {
          String[] parts1 = k1.split(KVStore.HIERARCHY_SEPARATOR);
          String[] parts2 = k2.split(KVStore.HIERARCHY_SEPARATOR);
-         int n = 0;
-         while (n < parts1.length && n < parts2.length) {
+         int n = -1;
+         while (++n < parts1.length && n < parts2.length) {
             int c = parts1[n].compareTo(parts2[n]);
             if (c != 0) {
                return c;
@@ -42,4 +45,9 @@ public class KeySet {
       return new KeySet(keys);
    }
 
+   public static Set<String> sort(Set<String> keys) {
+      Set<String> sorted = new TreeSet<>(keySortComparator());
+      sorted.addAll(keys);
+      return sorted;
+   }
 }

@@ -40,7 +40,7 @@ public class TemplateToKeyset {
    private static void visit(String parentName, JsonNode parent, Set<String> keySet, String path, File parentDoc) throws IOException {
       if (parentName.length() > 0) {
          // Ignore root node
-         System.out.println(path + ":" + parent.getNodeType());
+//         System.out.println(path + ":" + parent.getNodeType());
          keySet.add(path);
       }
       Iterator<Map.Entry<String, JsonNode>> it = parent.fields();

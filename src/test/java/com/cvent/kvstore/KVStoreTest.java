@@ -9,6 +9,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -133,6 +135,21 @@ public class KVStoreTest {
             hierarchiesTested.addAll(hierarchiesToTest);
          });
       });
+   }
+
+   @Test
+   public void testConfigGenerator() throws IOException {
+      Map<String, KVStore> kvStoreProvider = new HashMap<String, KVStore>() {{
+         put(KVStore.DEFAULT_REGION, defaultKVStore);
+         put("region1", kvStore);
+         put(kvStore.region(), kvStore);
+      }};
+      Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider);
+
+      ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
+      KeySet keySet = TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
+      configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
+      configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
    }
 
    private Set<String> generateHierarchies(String key, Set<String> hierarchiesTested) {

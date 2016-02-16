@@ -50,7 +50,7 @@ public class ConfigGenResource {
 
 
 //      DocumentType inputDocType = MediaType.APPLICATION_JSON.equals(documentType)?DocumentType.JSON: DocumentType.YAML;
-      KeySet keySet = TemplateToKeyset.templateToKeySet(new File(template));
+      KeySet keySet = TemplateToKeyset.from(new File(template));
       DocumentType outputDocType = "json".equals(format)?DocumentType.JSON: DocumentType.YAML;
       File tmp = File.createTempFile("out", outputDocType.name());
       try (FileOutputStream os = new FileOutputStream(tmp)) {

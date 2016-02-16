@@ -22,6 +22,7 @@ import java.util.Set;
 public interface KVStore {
    String DEFAULT_REGION = "default";
    String AUDIT_REGION = "audit";
+   String DOCUMENT_REGION = "document";
    String NO_VALUE = "<None>";
 
    // Care should be taken to ensure that this separator is neutral to any key-value store

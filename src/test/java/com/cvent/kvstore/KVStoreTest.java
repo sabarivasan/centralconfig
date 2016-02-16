@@ -145,7 +145,7 @@ public class KVStoreTest {
       Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider, "canonical_doc.properties");
 
       ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
-      KeySet keySet = TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
+      KeySet keySet = TemplateToKeyset.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
       configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
       configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
    }
@@ -169,7 +169,7 @@ public class KVStoreTest {
          createConicalData(kvStoreProvider, "canonical_doc_auth.properties");
 
 //      ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
-//      KeySet keySet = TemplateToKeyset.templateToKeySet(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
+//      KeySet keySet = TemplateToKeyset.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
 //      configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
 //      configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
 

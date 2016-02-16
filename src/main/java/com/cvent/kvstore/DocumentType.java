@@ -5,5 +5,10 @@ package com.cvent.kvstore;
  */
 public enum DocumentType {
    YAML,
-   JSON,
+   JSON,;
+
+   public boolean isYAML() {
+      return YAML == this;
+   }
+
 }

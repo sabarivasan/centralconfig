@@ -3,19 +3,17 @@ package com.cvent.kvstore.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.cvent.kvstore.ConfigGenerator;
-import com.cvent.kvstore.DocumentType;
 import com.cvent.kvstore.Document;
+import com.cvent.kvstore.DocumentType;
 import com.cvent.kvstore.KVStore;
-import com.cvent.kvstore.TemplateToDocument;
-import com.cvent.kvstore.consul.ConsulKVDaoEcwid;
 import com.cvent.kvstore.SimpleKVStore;
+import com.cvent.kvstore.consul.ConsulKVDaoEcwid;
 import com.cvent.kvstore.dw.ConsulKVStoreConfig;
 import com.google.common.base.Optional;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -23,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -40,7 +37,7 @@ public class ConfigGenResource {
 
     public ConfigGenResource(ConsulKVStoreConfig config) {
         this.config = config;
-        docKVStore = SimpleKVStore.forRegion(KVStore.DOCUMENT_REGION, new ConsulKVDaoEcwid(config));
+        docKVStore = SimpleKVStore.documentStoreFor(new ConsulKVDaoEcwid(config));
     }
 
 //    @GET
@@ -62,7 +59,7 @@ public class ConfigGenResource {
     public Response generateConfigFromDocument(@NotEmpty @QueryParam("document") String documentName,
                                                @NotEmpty @QueryParam("region") String region,
                                                @QueryParam("format") String format) throws IOException {
-        ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(region,
+        ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(documentName, region,
               new ConsulKVDaoEcwid(config)));
         Optional<String> serializedDoc = docKVStore.getValueAt(documentName);
         if (serializedDoc.isPresent()) {

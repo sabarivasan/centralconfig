@@ -46,11 +46,11 @@ import java.util.Random;
 public class DocumentResource {
 
     private ConsulKVStoreConfig config;
-    private KVStore docKVStore;
+    private KVStore  docKVStore;
 
     public DocumentResource(ConsulKVStoreConfig config) {
         this.config = config;
-        docKVStore = SimpleKVStore.forRegion(KVStore.DOCUMENT_REGION, new ConsulKVDaoEcwid(config));
+        docKVStore = SimpleKVStore.documentStoreFor(new ConsulKVDaoEcwid(config));
     }
 
     @POST
@@ -63,8 +63,7 @@ public class DocumentResource {
                               @NotNull @NotEmpty @QueryParam("author") String author,
                               @NotNull @HeaderParam("Content-Type") String contentType) throws IOException, KVStoreException {
 
-        String key = name;
-        if (docKVStore.getValueAt(key).isPresent()) {
+        if (docKVStore.getValueAt(name).isPresent()) {
             throw new IllegalArgumentException(String.format("Document named %s already exists. Did you mean to use PUT to update it?", name));
         }
         if (file.available() == 0) {
@@ -78,9 +77,10 @@ public class DocumentResource {
             docType = DocumentType.YAML;
         }
         Document document = TemplateToDocument.from(file, docType);
-        docKVStore.put(key, document.serialize(), author, true);
+        docKVStore.put(name, document.serialize(), author, true);
         return Response.ok().build();
     }
+
 
     @GET
     @Path("{name}")
@@ -106,7 +106,7 @@ public class DocumentResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         Document document = Document.deserialize(serializedDoc.get());
-        ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(region,
+        ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(name, region,
               new ConsulKVDaoEcwid(config)));
 
         String stashRepoPath = "/Users/sviswanathan/work/projects/CentralConfig/centralconfigchanges";

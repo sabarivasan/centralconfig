@@ -33,6 +33,9 @@ public interface KVStore {
    String FALSE = "false";
    Set<String> BOOLEAN_VALUES = new HashSet<String>() {{ add(TRUE);  add(FALSE); }};
 
+   // The document for which this KVStore was created
+   String documentName();
+
    // The region for which this KVStore was created
    String region();
 

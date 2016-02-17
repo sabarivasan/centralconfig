@@ -27,18 +27,21 @@ import java.util.Map;
 @Path("/audit-trail")
 @Produces(MediaType.APPLICATION_JSON + ",text/yaml")
 public class AuditTrailResource {
-   private final KVStore auditKVStore;
+   private final ConsulKVStoreConfig config;
 
    public AuditTrailResource(ConsulKVStoreConfig config) {
-      this.auditKVStore = SimpleKVStore.forRegion(KVStore.AUDIT_REGION,
-            new ConsulKVDaoEcwid(config));
+      this.config = config;
    }
 
    @GET
    @Timed
-   public List<AuditLog> getAuditLogs(@NotNull @NotEmpty @QueryParam("region") String region,
+   public List<AuditLog> getAuditLogs(@NotNull @NotEmpty @QueryParam("document") String documentName,
+                                      @NotNull @NotEmpty @QueryParam("region") String region,
                                       @NotNull @NotEmpty @QueryParam("key") String key,
                                       @QueryParam("author") String author) throws IOException {
+
+      KVStore auditKVStore = SimpleKVStore.forAuditRegion(documentName,
+            new ConsulKVDaoEcwid(config));
 
       Map<String, String> logs = auditKVStore.getHierarchyAt(region + KVStore.HIERARCHY_SEPARATOR + key);
       List<AuditLog> ret = new LinkedList<>();

@@ -10,6 +10,9 @@ import org.joda.time.format.ISODateTimeFormat;
  * Created by sviswanathan on 2/15/16.
  */
 public class AuditLog {
+   @NotEmpty
+   @JsonProperty
+   private String document;
 
    @NotEmpty
    @JsonProperty
@@ -42,7 +45,8 @@ public class AuditLog {
    public AuditLog() {
    }
 
-   public AuditLog(String author, String region, String key, String oldValue, String newValue, int version) {
+   public AuditLog(String document, String author, String region, String key, String oldValue, String newValue, int version) {
+      this.document = document;
       this.author = author;
       this.region = region;
       this.key = key;
@@ -50,6 +54,14 @@ public class AuditLog {
       this.newValue = newValue;
       this.version = version;
       this.timestamp = System.currentTimeMillis();
+   }
+
+   public String getDocument() {
+      return document;
+   }
+
+   public void setDocument(String document) {
+      this.document = document;
    }
 
    public String getAuthor() {

@@ -29,6 +29,7 @@ public class KVStoreTest {
    private static KVSStoreDao dao;
    private static KVStore defaultKVStore;
    private static KVStore kvStore;
+   private static String document;
    private static String region;
    private static String author;
    private static Random random = new Random();
@@ -38,11 +39,11 @@ public class KVStoreTest {
       config = new ConsulKVStoreConfig();
       config.setConsulEndpoint("dev-wiz-01:8500");
       region = "test-" + random.nextLong();
+      document = "doc-" + random.nextLong();
       dao = new ConsulKVDaoEcwid(config);
-//      kvStore = new ConsulKVStoreOrbitz(region, config);
-      defaultKVStore = SimpleKVStore.kvStoreForDefaultRegion(dao);
+      defaultKVStore = SimpleKVStore.forDefaultRegion(document, dao);
       author = randomString("author-", "");
-      kvStore = SimpleKVStore.forRegion(region, dao);
+      kvStore = SimpleKVStore.forRegion(document, region, dao);
    }
 
    @Before
@@ -155,8 +156,9 @@ public class KVStoreTest {
    @Test
    public void testConfigGeneratorAuth() throws IOException {
 
-      KVStore p2KVStore = SimpleKVStore.forRegion("p2", dao);
-      KVStore region1KVStore = SimpleKVStore.forRegion("region1", dao);
+      String document = "auth";
+      KVStore p2KVStore = SimpleKVStore.forRegion(document, "p2", dao);
+      KVStore region1KVStore = SimpleKVStore.forRegion(document, "region1", dao);
       try {
          Map<String, KVStore> kvStoreProvider = new HashMap<String, KVStore>() {{
             put(KVStore.DEFAULT_REGION, defaultKVStore);
@@ -167,13 +169,7 @@ public class KVStoreTest {
             put("p2", p2KVStore);
             put(p2KVStore.region(), p2KVStore);
          }};
-         createConicalData(kvStoreProvider, "canonical_doc.properties");
          createConicalData(kvStoreProvider, "canonical_doc_auth.properties");
-
-//      ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
-//      KeySet keySet = TemplateToKeyset.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
-//      configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
-//      configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
 
       } finally {
 //         p2KVStore.destroy();

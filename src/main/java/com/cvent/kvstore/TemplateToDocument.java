@@ -14,43 +14,43 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class is responsible for analyzing a template JSON/YAML document
- * and deriving at the optimal set of keys required for representing the document.
+ * This class is responsible for analyzing a template JSON/YAML template
+ * and deriving at the optimal set of keys required for representing the template.
  *
  * Created by sviswanathan on 2/12/16.
  */
-public class TemplateToKeyset {
+public class TemplateToDocument {
    public static final String PARENT_CONFIG_FILE_PROP_NAME = "parentConfigurationFile";
-   private File document;
+   private File template;
    private DocumentType docType;
    private JsonNode rootNode;
 
-   private TemplateToKeyset(File document) throws IOException {
-      this.document = document;
-      docType = document.getName().endsWith("yaml")?DocumentType.YAML:DocumentType.JSON;
+   private TemplateToDocument(File template) throws IOException {
+      this.template = template;
+      docType = template.getName().endsWith("yaml")?DocumentType.YAML:DocumentType.JSON;
       ObjectMapper mapper = new ObjectMapper(docType.isYAML()?new YAMLFactory():new JsonFactory());
-      rootNode = mapper.readValue(document, JsonNode.class);
+      rootNode = mapper.readValue(template, JsonNode.class);
    }
 
-   private TemplateToKeyset(InputStream is, DocumentType docType) throws IOException {
+   private TemplateToDocument(InputStream is, DocumentType docType) throws IOException {
       this.docType = docType;
       ObjectMapper mapper = new ObjectMapper(docType.isYAML()?new YAMLFactory():new JsonFactory());
       rootNode = mapper.readValue(is, JsonNode.class);
    }
 
-   private KeySet generate() throws IOException {
+   private Document generate() throws IOException {
       Set<String> keySet = new HashSet<>();
       visit("", rootNode, keySet, "");
-      return KeySet.from(keySet);
+      return Document.from(keySet);
    }
 
-   public static KeySet from(InputStream is, DocumentType documentType) throws IOException {
-      TemplateToKeyset toKeyset = new TemplateToKeyset(is, documentType);
+   public static Document from(InputStream is, DocumentType documentType) throws IOException {
+      TemplateToDocument toKeyset = new TemplateToDocument(is, documentType);
       return toKeyset.generate();
    }
 
-   public static KeySet from(File document) throws IOException {
-      TemplateToKeyset toKeyset = new TemplateToKeyset(document);
+   public static Document from(File document) throws IOException {
+      TemplateToDocument toKeyset = new TemplateToDocument(document);
       return toKeyset.generate();
    }
 
@@ -83,12 +83,12 @@ public class TemplateToKeyset {
 
             case STRING:
                if (PARENT_CONFIG_FILE_PROP_NAME.equals(name)) {
-                  if (document == null) {
+                  if (template == null) {
                      throw new IllegalArgumentException("Cannot resolve parentConfigurationFile");
                   }
-                  File parentRef = new File(document.getParentFile(), node.asText());
+                  File parentRef = new File(template.getParentFile(), node.asText());
                   if (!parentRef.exists()) {
-                     parentRef = new File(document.getParentFile().getParentFile(), node.asText());
+                     parentRef = new File(template.getParentFile().getParentFile(), node.asText());
                   }
                   if (!parentRef.exists()) {
                      throw new FileNotFoundException(name);
@@ -110,7 +110,7 @@ public class TemplateToKeyset {
 
    public static void main(String[] args) throws IOException {
 //      TemplateToKeyset.from(new File("/Users/sviswanathan/work/projects/LearnHogan/auth-service/auth-service-web/configs/alpha.yaml"));
-      TemplateToKeyset.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
+      TemplateToDocument.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
    }
 
 }

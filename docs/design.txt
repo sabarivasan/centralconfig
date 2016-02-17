@@ -1,0 +1,31 @@
+Key Concepts
+
+- Every config file (YAML/JSON document) is a tree with only leaf nodes representing primitive values (String, number or boolean)
+- The config structure for an application is the same across regions.
+- Most of the config values for an application is shared across regions. Regions override a few values
+- The default tree for an application is dense and contains the entire structure
+- Each region tree is:
+    - a subtree of the default tree
+    - is sparse
+    - contains only the values which override the corresponding nodes in the default tree
+
+
+Sharing configuration
+- The set of config files for all applications forms a forest of trees
+- Applications could share parts of configuration (database endpoints for example).
+- In the same way, the same application could share subtrees (this is an alias in YAML spec).
+- To implement shared configuration across applications/services, we will have the ability to have references from a node in an application's config to another node in the same application's tree or to a node in the shared "global" tree.
+
+Configuration Change Management
+- We need to provide the following features around making config changes:
+    - An easy way for developers to make the changes
+    - Changes need to be reviewed
+    - All changes to configuration need to be audit controlled. The finest grain of config change will be a change to a set of nodes (not just individual leaf nodes)
+- Some options for providing the above features are:
+    - Reuse version control (git/stash). Developers will make changes to files as they do currently
+    - Provide a custom GUI
+
+Configuration Change Notification
+- When config changes are made, running applications need to be notified of them. This could be approached in 2 ways:
+    - Individual instances of running applications could be sent messages containing config changes. All they need to do is to take necessary action when this message is received. A middle man that is aware of service discovery will take care of orchestrating rolling config updates.
+    - Applications watch for config changes (which sub-trees) that they are interested in. They have to take care of rolling updates themselves.

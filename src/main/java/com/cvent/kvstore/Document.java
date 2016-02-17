@@ -1,19 +1,21 @@
 package com.cvent.kvstore;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 /**
+ * A document is just a set of keys
  * Created by sviswanathan on 2/14/16.
  */
-public class KeySet {
+public class Document {
+   public static final String KEY_SEPARATOR = "\n";
    private Set<String> keys;
 
-   private KeySet(Set<String> keys) {
+   private Document(Set<String> keys) {
       this.keys = new TreeSet<>(keySortComparator());
       this.keys.addAll(keys);
    }
@@ -41,8 +43,22 @@ public class KeySet {
       return keys;
    }
 
-   public static KeySet from(Set<String> keys) {
-      return new KeySet(keys);
+   public String serialize() {
+      StringBuilder sb = new StringBuilder(1024);
+      keys.forEach(k -> sb.append(k).append(KEY_SEPARATOR));
+      return sb.toString();
+   }
+
+   public static Document deserialize(String serialized) {
+      Set<String> keys = new HashSet<>();
+      for (String key: serialized.split(KEY_SEPARATOR)) {
+         keys.add(key);
+      }
+      return new Document(keys);
+   }
+
+   public static Document from(Set<String> keys) {
+      return new Document(keys);
    }
 
    public static Set<String> sort(Set<String> keys) {
@@ -50,4 +66,5 @@ public class KeySet {
       sorted.addAll(keys);
       return sorted;
    }
+
 }

@@ -4,11 +4,13 @@ package com.cvent.kvstore.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.cvent.kvstore.ConfigGenerator;
 import com.cvent.kvstore.DocumentType;
-import com.cvent.kvstore.KeySet;
-import com.cvent.kvstore.TemplateToKeyset;
+import com.cvent.kvstore.Document;
+import com.cvent.kvstore.KVStore;
+import com.cvent.kvstore.TemplateToDocument;
 import com.cvent.kvstore.consul.ConsulKVDaoEcwid;
 import com.cvent.kvstore.SimpleKVStore;
 import com.cvent.kvstore.dw.ConsulKVStoreConfig;
+import com.google.common.base.Optional;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.ws.rs.Consumes;
@@ -33,31 +35,47 @@ import java.io.IOException;
 @Consumes(MediaType.APPLICATION_JSON + ",text/yaml")
 @Produces(MediaType.APPLICATION_JSON + ",text/yaml")
 public class ConfigGenResource {
-   private ConsulKVStoreConfig config;
+    private ConsulKVStoreConfig config;
+    private KVStore docKVStore;
 
-   public ConfigGenResource(ConsulKVStoreConfig config) {
-      this.config = config;
-   }
+    public ConfigGenResource(ConsulKVStoreConfig config) {
+        this.config = config;
+        docKVStore = SimpleKVStore.forRegion(KVStore.DOCUMENT_REGION, new ConsulKVDaoEcwid(config));
+    }
 
-   @GET
-   @Timed
-   public Response generateConfig(@NotEmpty @QueryParam("template") String template,
-                                  @NotEmpty @QueryParam("region") String region,
-                                         @QueryParam("format") String format,
-                                         @HeaderParam("Content-Type") String documentType) throws IOException {
-      ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(region,
-            new ConsulKVDaoEcwid(config)));
+//    @GET
+//    @Timed
+//    public Response generateConfigFromTemplate(@NotEmpty @QueryParam("template") String template,
+//                                               @NotEmpty @QueryParam("region") String region,
+//                                               @QueryParam("format") String format,
+//                                               @HeaderParam("Content-Type") String documentType) throws IOException {
+//        ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(region,
+//              new ConsulKVDaoEcwid(config)));
+//
+//        Document document = TemplateToDocument.from(new File(template));
+//        return Response.ok(new FileInputStream(writeDocumentToFile(format, configGenerator, document))).build();
+//    }
 
 
-//      DocumentType inputDocType = MediaType.APPLICATION_JSON.equals(documentType)?DocumentType.JSON: DocumentType.YAML;
-      KeySet keySet = TemplateToKeyset.from(new File(template));
-      DocumentType outputDocType = "json".equals(format)?DocumentType.JSON: DocumentType.YAML;
-      File tmp = File.createTempFile("out", outputDocType.name());
-      try (FileOutputStream os = new FileOutputStream(tmp)) {
-         configGenerator.generate(keySet, outputDocType, os);
-      } catch (Exception e) {
-         return Response.serverError().build();
-      }
-      return Response.ok(new FileInputStream(tmp)).build();
-   }
+    @GET
+    @Timed
+    public Response generateConfigFromDocument(@NotEmpty @QueryParam("document") String documentName,
+                                               @NotEmpty @QueryParam("region") String region,
+                                               @QueryParam("format") String format) throws IOException {
+        ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(region,
+              new ConsulKVDaoEcwid(config)));
+        Optional<String> serializedDoc = docKVStore.getValueAt(documentName);
+        if (serializedDoc.isPresent()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        Document document = Document.deserialize(serializedDoc.get());
+        return Response.ok(new FileInputStream(writeDocumentToFile(format, configGenerator, document))).build();
+    }
+
+    private File writeDocumentToFile(String format, ConfigGenerator configGenerator, Document document) throws IOException {
+        DocumentType outputDocType = "json".equals(format) ? DocumentType.JSON : DocumentType.YAML;
+        return configGenerator.generateToTmpFile(document, outputDocType);
+    }
+
 }

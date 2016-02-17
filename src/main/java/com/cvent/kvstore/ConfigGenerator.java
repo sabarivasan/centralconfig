@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -28,8 +30,16 @@ public class ConfigGenerator {
       this.kvStore = kvStore;
    }
 
-   public void generate(KeySet keySet, DocumentType docType, OutputStream os) throws IOException {
-      Iterator<String> it = keySet.iterateKeys();
+   public File generateToTmpFile(Document document, DocumentType docType) throws IOException {
+      File tmp = File.createTempFile("out", docType.name());
+      try (FileOutputStream os = new FileOutputStream(tmp)) {
+          generate(document, docType, os);
+      }
+      return tmp;
+   }
+
+   public void generate(Document document, DocumentType docType, OutputStream os) throws IOException {
+      Iterator<String> it = document.iterateKeys();
       Map<String, String> keyValuesFromDb = new HashMap<>();
 
       // Since KeySet need not have all leaf nodes, defined, first, retrieve the hierarchies that we need.
@@ -100,7 +110,7 @@ public class ConfigGenerator {
 
       private static TreeNode generateTree(Map<String, String> keyValues) {
          // Sort the keys so they are in document order.
-         Set<String> sortedKeys = KeySet.sort(keyValues.keySet());
+         Set<String> sortedKeys = Document.sort(keyValues.keySet());
 
          TreeNode root = createRootNode(sortedKeys);
          Map<String, TreeNode> nodesByKey = new HashMap<>();

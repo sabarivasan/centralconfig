@@ -5,6 +5,7 @@ import com.cvent.kvstore.dw.ConsulKVStoreConfig;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * Test for ConsulKVStore
  * Created by sviswanathan on 2/10/16.
  */
+@Ignore
 public class KVStoreTest {
    private static ConsulKVStoreConfig config;
    private static KVSStoreDao dao;
@@ -145,9 +147,9 @@ public class KVStoreTest {
       Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider, "canonical_doc.properties");
 
       ConfigGenerator configGenerator = new ConfigGenerator(defaultKVStore);
-      KeySet keySet = TemplateToKeyset.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
-      configGenerator.generate(keySet, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
-      configGenerator.generate(keySet, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
+      Document document = TemplateToDocument.from(new File("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/canonical.json"));
+      configGenerator.generate(document, DocumentType.JSON, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.json"));
+      configGenerator.generate(document, DocumentType.YAML, new FileOutputStream("/Users/sviswanathan/work/projects/CentralConfig/CentralConfig/testout.yaml"));
    }
 
    @Test

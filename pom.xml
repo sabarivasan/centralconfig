@@ -20,6 +20,7 @@
         <hamcrest-library.version>1.3</hamcrest-library.version>
         <mockito-all.version>1.9.0</mockito-all.version>
         <junit.version>4.11</junit.version>
+
         <service.main>com.cvent.kvstore.dw.CentralConfigApplication</service.main>
     </properties>
 
@@ -39,33 +40,17 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
-        <!--dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>2.10</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.ws.rs</groupId>
-                    <artifactId>jsr311-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency-->
         <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
             <version>1.1.8</version>
         </dependency>
-        <!--dependency>
-            <groupId>com.cvent</groupId>
-            <artifactId>dropwizard-couchbase</artifactId>
-            <version>${dropwizard-couchbase.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.cvent</groupId>
-                    <artifactId>dropwizard-groot</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency-->
+        <dependency>
+        	<groupId>commons-io</groupId>
+        	<artifactId>commons-io</artifactId>
+        	<version>2.4</version>
+        </dependency>
+
 
         <!-- unit test libs -->
         <dependency>

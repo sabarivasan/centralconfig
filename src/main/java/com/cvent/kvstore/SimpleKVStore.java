@@ -111,10 +111,12 @@ public class SimpleKVStore implements KVStore {
    public Map<String, String> getHierarchyAt(String key) {
       if (isDefaultRegion()) {
          // Optimization: no need to merge
-         return dao.getHierarchyAsMap(KeyProvider.defaultRegionKeyFor(document, key), true);
+         return dao.getHierarchyAsMap(KeyProvider.defaultRegionKeyFor(document, key), KeyProvider::keyFromDocumentRegionDbKey);
       } else {
-         Map<String, String> regionVals = dao.getHierarchyAsMap(KeyProvider.keyFor(document, region, key), true);
-         Map<String, String> defaultVals = dao.getHierarchyAsMap(KeyProvider.defaultRegionKeyFor(document, key), true);
+         Map<String, String> regionVals = dao.getHierarchyAsMap(KeyProvider.keyFor(document, region, key),
+               KeyProvider::keyFromDocumentRegionDbKey);
+         Map<String, String> defaultVals = dao.getHierarchyAsMap(KeyProvider.defaultRegionKeyFor(document, key),
+               KeyProvider::keyFromDocumentRegionDbKey);
          defaultVals.forEach((k, v) -> {
             if (!regionVals.containsKey(k)) regionVals.put(k, v);
          });

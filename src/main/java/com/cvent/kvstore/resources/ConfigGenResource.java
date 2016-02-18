@@ -15,6 +15,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -56,13 +57,14 @@ public class ConfigGenResource {
 
     @GET
     @Timed
-    public Response generateConfigFromDocument(@NotEmpty @QueryParam("document") String documentName,
-                                               @NotEmpty @QueryParam("region") String region,
+    @Path("/{document}/{region}")
+    public Response generateConfigFromDocument(@NotEmpty @PathParam("document") String documentName,
+                                               @NotEmpty @PathParam("region") String region,
                                                @QueryParam("format") String format) throws IOException {
         ConfigGenerator configGenerator = new ConfigGenerator(SimpleKVStore.forRegion(documentName, region,
               new ConsulKVDaoEcwid(config)));
         Optional<String> serializedDoc = docKVStore.getValueAt(documentName);
-        if (serializedDoc.isPresent()) {
+        if (!serializedDoc.isPresent()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 

@@ -11,6 +11,7 @@ import com.cvent.kvstore.consul.ConsulKVDaoEcwid;
 import com.cvent.kvstore.dw.ConsulKVStoreConfig;
 import com.google.common.base.Optional;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import retrofit.http.Body;
 
@@ -90,14 +91,14 @@ public class DocumentResource {
 //         throw new WebApplicationException(Response.status(Response.Status.NOT_FOUND).build());
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(Document.deserialize(serializedDoc.get()).keys()).build();
+        return Response.ok(StringUtils.join(Document.deserialize(serializedDoc.get()).sortedKeys(), "\n")).build();
     }
 
-    @POST
-    @Path("/{name}/checkout")
+    @GET
+    @Path("/{name}/{region}/checkout")
     public Response checkout(@NotNull @PathParam("name") String name,
-                             @NotNull @NotEmpty @QueryParam("author") String author,
-                             @NotNull @NotEmpty @QueryParam("region") String region) throws IOException {
+                             @NotNull @NotEmpty @PathParam("region") String region,
+                             @NotNull @NotEmpty @QueryParam("author") String author) throws IOException {
         if (region == null || author == null) {
             throw new IllegalArgumentException("author and region are required");
         }
@@ -111,11 +112,13 @@ public class DocumentResource {
 
         String stashRepoPath = "/Users/sviswanathan/work/projects/CentralConfig/centralconfigchanges";
         File out = new File(stashRepoPath,
-              String.format("%s-%s-%d.yaml", name, region, new Random().nextInt(1000)));
+              String.format("%s-%s.yaml", name, region));
+//            String.format("%s-%s-%d.yaml", name, region, new Random().nextInt(1000)));
         try (FileOutputStream os = new FileOutputStream(out)) {
             configGenerator.generate(document, DocumentType.YAML, os);
         }
 
+        changeBranch(stashRepoPath, "master");
         String branch = String.format("%s-%s-%s-%d", author, name, region, System.currentTimeMillis());
         createBranch(stashRepoPath, branch);
 
@@ -138,6 +141,11 @@ public class DocumentResource {
 
     private static String commit(String stashRepoPath, String message) throws IOException {
         String[] command = {"git", "commit", "-m", "\"" + message + "\""};
+        return executeCommand(stashRepoPath, command);
+    }
+
+    private static String changeBranch(String stashRepoPath, String branch) throws IOException {
+        String[] command = {"git", "checkout", branch};
         return executeCommand(stashRepoPath, command);
     }
 

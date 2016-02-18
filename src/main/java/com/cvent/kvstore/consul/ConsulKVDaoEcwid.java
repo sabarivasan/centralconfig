@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -47,12 +48,12 @@ public class ConsulKVDaoEcwid implements KVSStoreDao {
    }
 
    @Override
-   public Map<String, String> getHierarchyAsMap(String key, boolean stripFirstPartOfKey) {
+   public Map<String, String> getHierarchyAsMap(String key, Function<String, String> keyTransform) {
       Response<List<GetValue>> vals = client.getKVValues(key);
       if (vals.getValue() != null) {
-         if (stripFirstPartOfKey) {
+         if (keyTransform != null) {
             return vals.getValue().stream().collect(Collectors.toMap(
-                  gv -> gv.getKey().substring(gv.getKey().indexOf(KVStore.HIERARCHY_SEPARATOR) + 1),
+                  gv -> keyTransform.apply(gv.getKey()),
                   gv -> Base64.base64Decode(gv.getValue())));
          } else {
             return vals.getValue().stream().collect(Collectors.toMap(GetValue::getKey,

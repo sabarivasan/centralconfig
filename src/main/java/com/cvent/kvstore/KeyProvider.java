@@ -1,5 +1,7 @@
 package com.cvent.kvstore;
 
+import org.apache.commons.lang3.StringUtils;
+
 import static com.cvent.kvstore.KVStore.AUDIT_REGION;
 import static com.cvent.kvstore.KVStore.DEFAULT_REGION;
 import static com.cvent.kvstore.KVStore.HIERARCHY_SEPARATOR;
@@ -11,10 +13,16 @@ import static com.cvent.kvstore.KVStore.HIERARCHY_SEPARATOR;
  */
 public class KeyProvider {
 
-    // The key for a document for a region for a key
+    // The database key for a document for a region for a key
     // auth/alpha/server/applicationConnectors
     public static String keyFor(String document, String region, String key) {
-        return document + HIERARCHY_SEPARATOR + region + HIERARCHY_SEPARATOR + key + HIERARCHY_SEPARATOR;
+        return document + HIERARCHY_SEPARATOR + region + HIERARCHY_SEPARATOR + key;
+    }
+
+    // The inverse of the above method
+    public static String keyFromDocumentRegionDbKey(String dbKey) {
+        int ind = dbKey.indexOf(HIERARCHY_SEPARATOR);
+        return dbKey.substring(dbKey.indexOf(HIERARCHY_SEPARATOR, ind + 1) + 1);
     }
 
     // The key in the default region for a document for a key
@@ -22,6 +30,12 @@ public class KeyProvider {
     public static String defaultRegionKeyFor(String document, String key) {
         return keyFor(document, DEFAULT_REGION, key);
     }
+
+    // The inverse of the above method
+    public static String keyFromDocumentDefaultRegionDbKey(String dbKey) {
+        return keyFromDocumentRegionDbKey(dbKey);
+    }
+
 
     // The key for the entire hierarchy for a document for a region
     // auth/alpha

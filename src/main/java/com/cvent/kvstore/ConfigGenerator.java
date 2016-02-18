@@ -34,6 +34,7 @@ public class ConfigGenerator {
       File tmp = File.createTempFile("out", docType.name());
       try (FileOutputStream os = new FileOutputStream(tmp)) {
           generate(document, docType, os);
+          os.write("\n".getBytes());
       }
       return tmp;
    }

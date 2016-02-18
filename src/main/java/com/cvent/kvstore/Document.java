@@ -1,9 +1,11 @@
 package com.cvent.kvstore;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -41,6 +43,13 @@ public class Document {
 
    public Set<String> keys() {
       return keys;
+   }
+
+   public List<String> sortedKeys() {
+      List<String> sorted = new ArrayList<>(keys.size());
+      sorted.addAll(keys);
+      sorted.sort(Comparator.naturalOrder());
+      return sorted;
    }
 
    public String serialize() {

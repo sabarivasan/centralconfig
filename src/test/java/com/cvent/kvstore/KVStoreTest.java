@@ -108,13 +108,13 @@ public class KVStoreTest {
          put("region1", kvStore);
          put(kvStore.region(), kvStore);
       }};
-      Map<String, Map<String, String>> keyValuesByRegion = createConicalData(kvStoreProvider, "canonical_doc.properties");
+      Map<String, Map<String, String>> expectedKeyValuesByRegion = createConicalData(kvStoreProvider, "canonical_doc.properties");
 
 
-      Map<String, String> defaultKVs = keyValuesByRegion.get(KVStore.DEFAULT_REGION);
-      keyValuesByRegion.keySet().forEach(region -> {
+      Map<String, String> defaultKVs = expectedKeyValuesByRegion.get(KVStore.DEFAULT_REGION);
+      expectedKeyValuesByRegion.keySet().forEach(region -> {
          KVStore kvStore = kvStoreProvider.get(region);
-         Map<String, String> regionKVs = keyValuesByRegion.get(region);
+         Map<String, String> regionKVs = expectedKeyValuesByRegion.get(region);
 
          Set<String> hierarchiesTested = new HashSet<>();
          defaultKVs.keySet().forEach(k -> {
@@ -157,11 +157,12 @@ public class KVStoreTest {
    public void testConfigGeneratorAuth() throws IOException {
 
       String document = "auth";
-      KVStore p2KVStore = SimpleKVStore.forRegion(document, "p2", dao);
+      KVStore defaultRegionKVStore = SimpleKVStore.forDefaultRegion(document, dao);
       KVStore region1KVStore = SimpleKVStore.forRegion(document, "region1", dao);
+      KVStore p2KVStore = SimpleKVStore.forRegion(document, "p2", dao);
       try {
          Map<String, KVStore> kvStoreProvider = new HashMap<String, KVStore>() {{
-            put(KVStore.DEFAULT_REGION, defaultKVStore);
+            put(KVStore.DEFAULT_REGION, defaultRegionKVStore);
             put("region1", region1KVStore);
             put(region1KVStore.region(), region1KVStore);
 //         put("alpha", alphaKVStore);
@@ -200,7 +201,7 @@ public class KVStoreTest {
       // Makes the assumption that the default region appears before other regions
       props.stringPropertyNames().stream().sorted().forEach(k -> {
          try {
-            int ind = k.indexOf("/");
+            int ind = k.indexOf(".");
             KVStore kvStore = kvStoreProvider.get(k.substring(0, ind));
             String value = props.getProperty(k);
             kvStore.put(k.substring(ind + 1), value, author, false);

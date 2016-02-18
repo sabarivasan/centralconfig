@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * The interface that represents CRUD operations with the KV store.
@@ -37,7 +38,7 @@ public interface KVSStoreDao {
     * @param stripFirstPartOfKey should we strip the first part of key when creating the return value map?
     * @return a map of key-value pairs
     */
-   Map<String, String> getHierarchyAsMap(String key, boolean stripFirstPartOfKey);
+   Map<String, String> getHierarchyAsMap(String key, Function<String, String> stripFirstPartOfKey);
 
 
    Optional<Collection<String>> getKeysAt(String key);
